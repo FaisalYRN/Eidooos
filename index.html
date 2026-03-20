@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#1a6b3c"/>
+<meta name="description" content="أرسل كرت معايدة بالاسم"/>
+<title>كرت معايدة</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100dvh;font-family:'Noto Naskh Arabic',serif;background:linear-gradient(135deg,#0d4f2c 0%,#1a6b3c 40%,#c8860a 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+
+#sender{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);border-radius:24px;padding:36px 28px;width:100%;max-width:400px;text-align:center;color:#fff}
+#sender .logo{font-size:48px;margin-bottom:8px}
+#sender h1{font-family:'Amiri',serif;font-size:26px;margin-bottom:4px}
+#sender .sub{font-size:13px;opacity:.75;margin-bottom:28px}
+#sender input{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,0.3);border-radius:14px;background:rgba(255,255,255,0.12);color:#fff;font-size:18px;font-family:inherit;text-align:center;outline:none;transition:.2s;margin-bottom:16px}
+#sender input::placeholder{color:rgba(255,255,255,0.5)}
+#sender input:focus{border-color:rgba(255,215,0,.7);background:rgba(255,255,255,.18)}
+#sender button{width:100%;padding:15px;background:linear-gradient(135deg,#f0a500,#c8860a);color:#fff;border:none;border-radius:14px;font-size:17px;font-family:inherit;font-weight:700;cursor:pointer;transition:.15s}
+#sender button:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,134,10,.5)}
+
+#result{margin-top:20px;display:none;background:rgba(0,0,0,.2);border-radius:14px;padding:16px}
+#result .rlabel{font-size:13px;opacity:.8;margin-bottom:10px}
+#linkBox{background:rgba(0,0,0,.25);border-radius:10px;padding:10px 14px;font-size:12px;word-break:break-all;color:#ffd700;margin-bottom:12px;font-family:monospace;direction:ltr;text-align:left}
+.btnRow{display:flex;gap:10px}
+.btnRow button{flex:1;padding:11px;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+#copyBtn{background:#fff;color:#1a6b3c}
+#shareBtn{background:#25D366;color:#fff}
+
+#card{display:none;width:100%;max-width:420px;text-align:center;animation:fadeIn .8s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.cardInner{background:linear-gradient(160deg,#fdf6e3 0%,#fff8e7 60%,#fdebd0 100%);border-radius:28px;border:3px solid #c8860a;padding:44px 32px 36px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.lanterns{font-size:32px;margin-bottom:4px}
+.stars{font-size:18px;letter-spacing:4px;color:#c8860a;margin-bottom:16px}
+.mainMsg{font-family:'Amiri',serif;font-size:38px;font-weight:700;color:#1a6b3c;line-height:1.4;margin-bottom:6px}
+.subMsg{font-size:16px;color:#666;margin-bottom:24px}
+.divider{width:80%;margin:0 auto 24px;height:2px;background:linear-gradient(90deg,transparent,#c8860a,transparent)}
+.recipientLabel{font-size:14px;color:#888;margin-bottom:6px}
+.recipientName{font-family:'Amiri',serif;font-size:34px;font-weight:700;color:#c8860a}
+.bottomDeco{font-size:24px;margin-top:20px;opacity:.6}
+.shareCardBtn{margin-top:20px;padding:14px 32px;background:linear-gradient(135deg,#f0a500,#c8860a);color:#fff;border:none;border-radius:14px;font-size:16px;font-family:inherit;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="sender">
+  <div class="logo">🌙</div>
+  <h1>كرت معايدة</h1>
+  <p class="sub">أدخل اسم الشخص وشارك الرابط معه</p>
+  <input id="nameInput" type="text" placeholder="اكتب الاسم هنا..." maxlength="40"/>
+  <button onclick="generate()">✨ إنشاء الكرت</button>
+  <div id="result">
+    <p class="rlabel">رابط الكرت جاهز 🎉</p>
+    <div id="linkBox"></div>
+    <div class="btnRow">
+      <button id="copyBtn" onclick="copyLink()">📋 نسخ</button>
+      <button id="shareBtn" onclick="shareLink()">📤 واتساب</button>
+    </div>
+  </div>
+</div>
+
+<div id="card">
+  <div class="cardInner">
+    <div class="lanterns">🪔 🌙 🪔</div>
+    <div class="stars">★ ★ ★</div>
+    <div class="mainMsg">كل عام وأنتم بخير</div>
+    <div class="subMsg">تقبّل الله منّا ومنكم</div>
+    <div class="divider"></div>
+    <div class="recipientLabel">إلى</div>
+    <div class="recipientName" id="cardName"></div>
+    <div class="bottomDeco">🌸 ✨ 🌸</div>
+  </div>
+  <button class="shareCardBtn" onclick="shareCard()">📤 شارك الكرت</button>
+</div>
+
+<script>
+  // ── Check for ?name= on load ──
+  const params = new URLSearchParams(location.search);
+  const nameParam = params.get('name');
+  if (nameParam) {
+    document.getElementById('sender').style.display = 'none';
+    document.getElementById('card').style.display = 'block';
+    document.getElementById('cardName').textContent = nameParam;
+  }
+
+  // ── Generate link ──
+  function generate() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) { document.getElementById('nameInput').focus(); return; }
+    const url = location.origin + location.pathname + '?name=' + encodeURIComponent(name);
+    window._url = url;
+    window._name = name;
+    document.getElementById('linkBox').textContent = url;
+    document.getElementById('result').style.display = 'block';
+  }
+
+  // ── Copy ──
+  function copyLink() {
+    navigator.clipboard.writeText(window._url).then(() => {
+      const b = document.getElementById('copyBtn');
+      b.textContent = '✅ تم النسخ';
+      setTimeout(() => b.textContent = '📋 نسخ', 2000);
+    });
+  }
+
+  // ── Share via WhatsApp ──
+  function shareLink() {
+    const msg = 'كل عام وأنت بخير يا ' + window._name + ' 🌙\nتفضّل كرت معايدتك:\n' + window._url;
+    if (navigator.share) {
+      navigator.share({ title: 'كرت معايدة', text: msg, url: window._url });
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+  }
+
+  // ── Share from card view ──
+  function shareCard() {
+    const name = document.getElementById('cardName').textContent;
+    const msg = 'كل عام وأنت بخير يا ' + name + ' 🌙\n' + location.href;
+    if (navigator.share) {
+      navigator.share({ title: 'كرت معايدة', text: msg, url: location.href });
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    }
+  }
+</script>
+</body>
+</html>
